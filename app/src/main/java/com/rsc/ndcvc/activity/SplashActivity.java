@@ -1,10 +1,13 @@
 package com.rsc.ndcvc.activity;
 
 import android.os.Bundle;
+import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.rsc.ndcvc.R;
+
+import java.util.Objects;
 
 public class SplashActivity extends AppCompatActivity {
 

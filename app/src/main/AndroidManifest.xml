@@ -25,6 +25,7 @@
         tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".activity.LoginActivity"/>
         <activity
+            android:theme="@style/AppTheme.Splash"
             android:name=".activity.SplashActivity"
             android:configChanges="orientation|screenSize">
             <intent-filter>
