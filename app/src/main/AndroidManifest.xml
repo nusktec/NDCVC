@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.twilio.video.quickstart">
+    package="com.rsc.ndcvc">
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
@@ -23,8 +23,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name=".activity.LoginActivity"/>
         <activity
-            android:name="com.nsc.ndcvc.activity.VideoActivity"
+            android:name=".activity.SplashActivity"
             android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,13 +34,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.nsc.ndcvc.activity.SettingsActivity"
-            android:theme="@style/AppTheme.Settings"
+            android:name="com.rsc.ndcvc.activity.VideoActivity"
+            android:configChanges="orientation|screenSize">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.rsc.ndcvc.activity.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName="com.nsc.ndcvc.activity.VideoActivity">
+            android:parentActivityName=".activity.VideoActivity"
+            android:theme="@style/AppTheme.Settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.nsc.ndcvc.activity.VideoActivity" />
+                android:value=".activity.VideoActivity" />
         </activity>
     </application>
 

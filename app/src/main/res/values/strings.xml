@@ -16,4 +16,5 @@
     <string name="turn_speaker_on">Speaker ON</string>
     <string name="vp8_simulcast">VP8 Simulcast</string>
     <string name="turn_speaker_off">Speaker OFF</string>
+    <string name="todo">TODO</string>
 </resources>
