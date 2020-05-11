@@ -6,9 +6,11 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowDisablePreview">true</item>
     </style>
 
     <style name="AppTheme.Settings" parent="AppTheme">
+        <item name="android:windowDisablePreview">true</item>
         <item name="colorAccent">@color/colorPrimary</item>
         <item name="displayOptions">showHome|showTitle|homeAsUp</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
@@ -16,8 +18,20 @@
 
 
     <style name="AppTheme.Splash" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowDisablePreview">true</item>
         <item name="android:windowTranslucentStatus" tools:targetApi="kitkat">true</item>
         <item name="android:windowTranslucentNavigation" tools:targetApi="kitkat">true</item>
+    </style>
+
+    <style name="AppTheme.NoTitle" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowDisablePreview">true</item>
+        <item name="windowNoTitle">true</item>
+        <item name="colorPrimaryDark">@color/colorAccent</item>
+    </style>
+
+    <style name="AppTheme.WithTitle" parent="AppTheme">
+        <item name="android:windowDisablePreview">true</item>
+        <item name="colorPrimaryDark">@color/colorAccent</item>
     </style>
 
 </resources>
