@@ -28,7 +28,7 @@ import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private String BUNDLE_TRAN_NAME = "user_data";
+    public static String BUNDLE_TRAN_NAME = "user_data";
     private ActivityLoginBinding bdx;
     private Context ctx;
 

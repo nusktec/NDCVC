@@ -29,7 +29,7 @@
 
         <activity
             android:name=".activity.MainActivity"
-            android:theme="@style/AppTheme.WithTitle">
+            android:theme="@style/AppTheme.NoTitle">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -64,7 +64,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.VideoActivity" />
         </activity>
-        <activity android:name=".activity.MainActivityLect" />
+        <activity android:name=".activity.MainActivityLect" android:theme="@style/AppTheme.NoTitle"/>
     </application>
 
 </manifest>
