@@ -48,7 +48,7 @@
                 android:padding="10dp"
                 android:singleLine="true"
                 android:textColor="@color/white"
-                android:textColorHint="@color/white"
+                android:textColorHint="@color/white_greyish"
                 android:textSize="16sp" />
 
             <View
@@ -70,7 +70,7 @@
                 android:padding="10dp"
                 android:singleLine="true"
                 android:textColor="@color/white"
-                android:textColorHint="@color/white"
+                android:textColorHint="@color/white_greyish"
                 android:textSize="16sp" />
 
             <LinearLayout
@@ -94,10 +94,11 @@
 
             <Button
                 android:id="@+id/loginBtn"
-                android:layout_width="fill_parent"
+                style="?attr/selectableItemBackgroundBorderless"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="3dp"
-                android:background="@drawable/loginbutton_selector"
                 android:padding="3dp"
                 android:text="@string/login"
                 android:textColor="@color/colorAccent"

@@ -12,6 +12,7 @@ import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
@@ -20,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -27,14 +29,17 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.databinding.DataBindingUtil;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.koushikdutta.ion.Ion;
 import com.rsc.ndcvc.R;
+import com.rsc.ndcvc.databinding.ActivityVideoBinding;
 import com.rsc.ndcvc.dialog.Dialog;
 import com.rsc.ndcvc.util.BuildConfig;
 import com.rsc.ndcvc.util.CameraCapturerCompat;
+import com.rsc.ndcvc.util.Tools;
 import com.twilio.video.AudioCodec;
 import com.twilio.video.CameraCapturer;
 import com.twilio.video.CameraCapturer.CameraSource;
@@ -67,12 +72,15 @@ import com.twilio.video.Vp8Codec;
 import com.twilio.video.Vp9Codec;
 
 import java.util.Collections;
+import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 public class VideoActivity extends AppCompatActivity {
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 1;
     private static final String TAG = "VideoActivity";
-
+    private ActivityVideoBinding bdx;
     /*
      * Audio and video tracks can be created with names. This feature is useful for categorizing
      * tracks of participants. For example, if one participant publishes a video track with
@@ -153,7 +161,7 @@ public class VideoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_video);
+        this.bdx = DataBindingUtil.setContentView(this, R.layout.activity_video);
 
         primaryVideoView = findViewById(R.id.primary_video_view);
         thumbnailVideoView = findViewById(R.id.thumbnail_video_view);
@@ -193,6 +201,17 @@ public class VideoActivity extends AppCompatActivity {
          * Set the initial state of the UI
          */
         intializeUI();
+        setupToolbar();
+    }
+
+    //setup toolbar
+    void setupToolbar() {
+        try {
+            setSupportActionBar(bdx.toolbar);
+            Objects.requireNonNull(getSupportActionBar()).setSubtitle(getIntent().getStringExtra("uname"));
+        } catch (Exception ex) {
+            //do nothing
+        }
     }
 
     @Override
@@ -425,7 +444,7 @@ public class VideoActivity extends AppCompatActivity {
 
     private void connectToRoom(String roomName) {
         configureAudio(true);
-        ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImN0eSI6InR3aWxpby1mcGE7dj0xIn0.eyJqdGkiOiJTSzlmNWU5ZTg1YmZkZjU0MDU1ZWZmMDc1YTU5YmM2OWI4LTE1ODkwNzA2NzYiLCJpc3MiOiJTSzlmNWU5ZTg1YmZkZjU0MDU1ZWZmMDc1YTU5YmM2OWI4Iiwic3ViIjoiQUM2MzlkZGU1Y2ZlOWRmNDQ2MzgyN2IxMDE1NjQ5MzE5MCIsImV4cCI6MTU4OTA3NDI3NiwiZ3JhbnRzIjp7ImlkZW50aXR5IjoiT251Y2hlIiwidmlkZW8iOnt9fX0.Cp7fQtHH_1Kk41LD8RG3GRtdTY3G1XXjlMDIqTLi9CE").roomName("CLASS-NDC-2020-28WEUQICMCT");
+        ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder(Objects.requireNonNull(getIntent().getStringExtra("vtoken"))).roomName(roomName);
         /*
          * Add local audio track to connect options to share with participants.
          */
@@ -469,10 +488,14 @@ public class VideoActivity extends AppCompatActivity {
      * The initial state when there is no active room.
      */
     private void intializeUI() {
-        connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
-                R.drawable.ic_video_call_white_24dp));
+        connectActionFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_video_call_white_24dp));
         connectActionFab.show();
-        connectActionFab.setOnClickListener(connectActionClickListener());
+        connectActionFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                connectToRoom(getIntent().getStringExtra("classname"));
+            }
+        });
         switchCameraActionFab.show();
         switchCameraActionFab.setOnClickListener(switchCameraClickListener());
         localVideoActionFab.show();
@@ -570,7 +593,7 @@ public class VideoActivity extends AppCompatActivity {
          */
         if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
             Snackbar.make(connectActionFab,
-                    "Multiple participants are not currently support in this UI",
+                    remoteParticipant.getIdentity().split("~")[0] + " has joined the class",
                     Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
             return;
@@ -664,14 +687,45 @@ public class VideoActivity extends AppCompatActivity {
     /*
      * Room events listener
      */
+    int hou = 0;
+    int min = 0;
+    int sec = 0;
+
     @SuppressLint("SetTextI18n")
     private Room.Listener roomListener() {
         return new Room.Listener() {
             @Override
             public void onConnected(Room room) {
                 localParticipant = room.getLocalParticipant();
-                setTitle(room.getName());
-
+                setTitle("On Air");
+                TextView txt = findViewById(R.id.video_status_textview);
+                Tools.showToast(VideoActivity.this, "You are now connected !");
+                //set timer
+                new Timer().scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                sec++;
+                                if (sec > 59) {
+                                    min++;
+                                }
+                                if (min > 59) {
+                                    hou++;
+                                }
+                                if (sec > 59) {
+                                    sec = 0;
+                                }
+                                String secs = String.format("%02d", sec);
+                                String mins = String.format("%02d", min);
+                                String hous = String.format("%02d", hou);
+                                txt.setText(hous + ":" + mins + ":" + secs);
+                            }
+                        });
+                    }
+                }, 1000, 1000);
+                //timer
                 for (RemoteParticipant remoteParticipant : room.getRemoteParticipants()) {
                     addRemoteParticipant(remoteParticipant);
                     break;
@@ -681,11 +735,13 @@ public class VideoActivity extends AppCompatActivity {
             @Override
             public void onReconnecting(@NonNull Room room, @NonNull TwilioException twilioException) {
                 reconnectingProgressBar.setVisibility(View.VISIBLE);
+                setTitle("On Air Off");
             }
 
             @Override
             public void onReconnected(@NonNull Room room) {
                 reconnectingProgressBar.setVisibility(View.GONE);
+                setTitle("On Air");
             }
 
             @Override
@@ -705,12 +761,12 @@ public class VideoActivity extends AppCompatActivity {
                     intializeUI();
                     moveLocalVideoToPrimaryView();
                 }
+                Tools.showToast(VideoActivity.this, "You are now disconnected !");
             }
 
             @Override
             public void onParticipantConnected(Room room, RemoteParticipant remoteParticipant) {
                 addRemoteParticipant(remoteParticipant);
-
             }
 
             @Override
@@ -731,7 +787,7 @@ public class VideoActivity extends AppCompatActivity {
             public void onRecordingStopped(Room room) {
                 /*
                  * Indicates when media shared to a Room is no longer being recorded. Note that
-                 * recording is only available in our Group Rooms developer preview.
+                 * Recording is only available in our Group Rooms developer preview.
                  */
                 Log.d(TAG, "onRecordingStopped");
             }
@@ -745,14 +801,9 @@ public class VideoActivity extends AppCompatActivity {
             public void onAudioTrackPublished(RemoteParticipant remoteParticipant,
                                               RemoteAudioTrackPublication remoteAudioTrackPublication) {
                 Log.i(TAG, String.format("onAudioTrackPublished: " +
-                                "[RemoteParticipant: identity=%s], " +
-                                "[RemoteAudioTrackPublication: sid=%s, enabled=%b, " +
-                                "subscribed=%b, name=%s]",
-                        remoteParticipant.getIdentity(),
-                        remoteAudioTrackPublication.getTrackSid(),
-                        remoteAudioTrackPublication.isTrackEnabled(),
-                        remoteAudioTrackPublication.isTrackSubscribed(),
-                        remoteAudioTrackPublication.getTrackName()));
+                        "[RemoteParticipant: identity=%s], " +
+                        "[RemoteAudioTrackPublication: sid=%s, enabled=%b, " +
+                        "subscribed=%b, name=%s]", remoteParticipant.getIdentity(), remoteAudioTrackPublication.getTrackSid(), remoteAudioTrackPublication.isTrackEnabled(), remoteAudioTrackPublication.isTrackSubscribed(), remoteAudioTrackPublication.getTrackName()));
             }
 
             @Override
@@ -978,7 +1029,7 @@ public class VideoActivity extends AppCompatActivity {
             /*
              * Connect to room
              */
-            connectToRoom(roomEditText.getText().toString());
+
         };
     }
 

@@ -8,7 +8,7 @@ buildscript {
             'googleServices'     : '3.2.1',
             'compileSdk'         : 29,
             'buildTools'         : '28.0.3',
-            'minSdk'             : 16,
+            'minSdk'             : 19,
             'targetSdk'          : 29,
             'supportLibrary'     : '26.1.0',
             'constraintLayout'   : '1.1.3',

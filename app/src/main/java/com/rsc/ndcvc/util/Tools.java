@@ -42,4 +42,5 @@ public class Tools {
     public static void showToast(Context ctx, String msg) {
         Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
     }
+
 }

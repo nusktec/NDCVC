@@ -62,6 +62,9 @@ public class LoginActivity extends AppCompatActivity {
         if (Tools.isLogged(ctx)) {
             String email = Tools.getEmail(ctx);
             String pass = Tools.getPass(ctx);
+            //set text
+            bdx.loginEmailid.setText(email);
+            bdx.loginPassword.setText(pass);
             loginUser(email, pass);
             pd.setMessage("Verifying logged user...");
         }
@@ -112,7 +115,7 @@ public class LoginActivity extends AppCompatActivity {
                                                         Intent il = new Intent(ctx, MainActivityLect.class);
                                                         il.putExtra(BUNDLE_TRAN_NAME, response.getJSONObject("data").toString());
                                                         startActivity(il);
-                                                        finish();
+                                                        //finish();
                                                     } else if (response.getJSONObject("data").getInt("utype") == 0) {
                                                         //save logged user
                                                         Tools.setUser(ctx, email, password);
