@@ -16,6 +16,7 @@ import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.common.Priority;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
+import com.jacksonandroidnetworking.JacksonParserFactory;
 import com.rsc.ndcvc.R;
 import com.rsc.ndcvc.Urls;
 import com.rsc.ndcvc.databinding.ActivityLoginBinding;
@@ -25,6 +26,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Objects;
+
+import static com.rsc.ndcvc.activity.SplashActivity.getUnsafeOkHttpClient;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -123,7 +126,7 @@ public class LoginActivity extends AppCompatActivity {
                                                         Intent il = new Intent(ctx, MainActivity.class);
                                                         il.putExtra(BUNDLE_TRAN_NAME, response.getJSONObject("data").toString());
                                                         startActivity(il);
-                                                        finish();
+                                                        //finish();
                                                     } else {
                                                         Tools.showToast(ctx, "Super user not allowed on mobile...");
                                                     }
@@ -135,6 +138,7 @@ public class LoginActivity extends AppCompatActivity {
                                             }
                                         }, 2000);
                                     } else {
+                                        Log.e("INVALIDINVALI", response.toString());
                                         Tools.showToast(ctx, "Invalid login details");
                                         pd.hide();
                                         Tools.deleteUser(ctx);

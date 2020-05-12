@@ -92,7 +92,7 @@ public class MainActivityLect extends AppCompatActivity {
         showProgress("Checking Account Status");
         //loading account info
         if (userObj.getInt("ustatus") == 0) {
-            Tools.showToast(ctx, "Your account has been locked !");
+            Tools.showToast(ctx, "Your account is been locked !");
             Tools.deleteUser(ctx);
             startActivity(new Intent(ctx, LoginActivity.class));
             finish();

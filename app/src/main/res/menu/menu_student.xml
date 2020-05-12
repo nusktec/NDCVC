@@ -4,14 +4,21 @@
 
     <item
         android:id="@+id/menu_stud_add_class"
-        android:title="Add Class"
+        android:title="Add"
         app:showAsAction="ifRoom" />
+
     <item
-        android:id="@+id/menu_stud_attendance"
-        android:title="Attendance"
+        android:id="@+id/menu_stud_mgr"
+        android:title="Manage"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_stud_reload"
+        android:title="Refresh"
         app:showAsAction="never" />
+
     <item
         android:id="@+id/menu_stud_logout"
         android:title="Logout"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
 </menu>

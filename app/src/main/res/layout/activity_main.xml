@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/white"
-        tools:context=".activity.MainActivityLect">
+        tools:context=".activity.MainActivity">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -19,31 +19,44 @@
             android:layout_height="?actionBarSize"
             android:layout_alignParentTop="true"
             android:background="@color/colorAccent"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:popupTheme="@style/Theme.AppCompat.Light.NoActionBar"
             app:subtitleTextColor="#fff"
             app:titleTextAppearance="@style/Toolbar.TitleText"
             app:titleTextColor="#fff" />
 
+        <TextView
+            android:id="@+id/txt_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/toolbar"
+            android:layout_margin="10dp"
+            android:text="Your Classes"
+            android:textColor="#2C000000"
+            android:textSize="25sp" />
+
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/toolbar">
-
-            <TextView
-                android:id="@+id/classInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:padding="20dp"
-                android:text="You have no class !"
-                android:textAlignment="center"
-                android:textSize="20sp" />
+            android:layout_below="@id/txt_header">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/ryc"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
         </androidx.core.widget.NestedScrollView>
 
+        <TextView
+            android:id="@+id/classInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:padding="20dp"
+            android:text="You have no class. +"
+            android:textAlignment="center"
+            android:textSize="20sp" />
 
     </RelativeLayout>
 </layout>

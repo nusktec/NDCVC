@@ -2,6 +2,7 @@ package com.rsc.ndcvc.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -482,11 +483,24 @@ public class VideoActivity extends AppCompatActivity {
 
         room = Video.connect(this, connectOptionsBuilder.build(), roomListener());
         setDisconnectAction();
+        //show dialog
+        showProgress("Establishing video class");
     }
 
     /*
      * The initial state when there is no active room.
      */
+    ProgressDialog pd;
+
+    void showProgress(String msg) {
+        //check if user data this
+        pd = new ProgressDialog(this);
+        pd.setTitle("Please wait");
+        pd.setMessage(msg);
+        pd.setCancelable(false);
+        pd.show();
+    }
+
     private void intializeUI() {
         connectActionFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_video_call_white_24dp));
         connectActionFab.show();
@@ -588,6 +602,12 @@ public class VideoActivity extends AppCompatActivity {
      */
     @SuppressLint("SetTextI18n")
     private void addRemoteParticipant(RemoteParticipant remoteParticipant) {
+        //add if only is lecturer
+        String str = remoteParticipant.getIdentity();
+        if (!str.split("~")[2].equals("200")) {
+            Tools.showToast(VideoActivity.this, "No lecturer present !");
+            return;
+        }
         /*
          * This app only displays video for one additional participant per Room
          */
@@ -697,6 +717,7 @@ public class VideoActivity extends AppCompatActivity {
         return new Room.Listener() {
             @Override
             public void onConnected(Room room) {
+                pd.hide();
                 localParticipant = room.getLocalParticipant();
                 setTitle("On Air");
                 TextView txt = findViewById(R.id.video_status_textview);
@@ -728,10 +749,12 @@ public class VideoActivity extends AppCompatActivity {
                     }
                 }, 1000, 1000);
                 //timer
-
                 for (RemoteParticipant remoteParticipant : room.getRemoteParticipants()) {
                     addRemoteParticipant(remoteParticipant);
                     break;
+                }
+                if (!getIntent().getBooleanExtra("islect", false)) {
+                    localAudioTrack.enable(false);
                 }
             }
 
