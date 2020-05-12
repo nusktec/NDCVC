@@ -690,6 +690,7 @@ public class VideoActivity extends AppCompatActivity {
     int hou = 0;
     int min = 0;
     int sec = 0;
+    Timer _t, timer;
 
     @SuppressLint("SetTextI18n")
     private Room.Listener roomListener() {
@@ -701,11 +702,12 @@ public class VideoActivity extends AppCompatActivity {
                 TextView txt = findViewById(R.id.video_status_textview);
                 Tools.showToast(VideoActivity.this, "You are now connected !");
                 //set timer
-                new Timer().scheduleAtFixedRate(new TimerTask() {
+                _t = new Timer();
+                _t.scheduleAtFixedRate(new TimerTask() {
                     @Override
                     public void run() {
-                        runOnUiThread(new Runnable() {
-                            @Override
+                        runOnUiThread(new Runnable() //run on ui
+                        {
                             public void run() {
                                 sec++;
                                 if (sec > 59) {
@@ -726,6 +728,7 @@ public class VideoActivity extends AppCompatActivity {
                     }
                 }, 1000, 1000);
                 //timer
+
                 for (RemoteParticipant remoteParticipant : room.getRemoteParticipants()) {
                     addRemoteParticipant(remoteParticipant);
                     break;
@@ -762,6 +765,8 @@ public class VideoActivity extends AppCompatActivity {
                     moveLocalVideoToPrimaryView();
                 }
                 Tools.showToast(VideoActivity.this, "You are now disconnected !");
+                setTitle("NDCVC Mobile");
+                _t.cancel();
             }
 
             @Override
