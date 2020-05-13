@@ -20,6 +20,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -31,13 +34,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.koushikdutta.ion.Ion;
 import com.rsc.ndcvc.R;
+import com.rsc.ndcvc.adapters.ListLive;
 import com.rsc.ndcvc.databinding.ActivityVideoBinding;
 import com.rsc.ndcvc.dialog.Dialog;
+import com.rsc.ndcvc.models.ModelLiveVideo;
 import com.rsc.ndcvc.util.BuildConfig;
 import com.rsc.ndcvc.util.CameraCapturerCompat;
 import com.rsc.ndcvc.util.Tools;
@@ -72,7 +78,9 @@ import com.twilio.video.VideoView;
 import com.twilio.video.Vp8Codec;
 import com.twilio.video.Vp9Codec;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -157,12 +165,18 @@ public class VideoActivity extends AppCompatActivity {
     private boolean disconnectedFromOnDestroy;
     private boolean isSpeakerPhoneEnabled = true;
     private boolean enableAutomaticSubscription;
-
+    private Context ctx;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.bdx = DataBindingUtil.setContentView(this, R.layout.activity_video);
+        this.ctx = this;
+
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        );
 
         primaryVideoView = findViewById(R.id.primary_video_view);
         thumbnailVideoView = findViewById(R.id.thumbnail_video_view);
@@ -210,6 +224,7 @@ public class VideoActivity extends AppCompatActivity {
         try {
             setSupportActionBar(bdx.toolbar);
             Objects.requireNonNull(getSupportActionBar()).setSubtitle(getIntent().getStringExtra("uname"));
+            setTitle("");
         } catch (Exception ex) {
             //do nothing
         }
@@ -450,8 +465,7 @@ public class VideoActivity extends AppCompatActivity {
          * Add local audio track to connect options to share with participants.
          */
         if (localAudioTrack != null) {
-            connectOptionsBuilder
-                    .audioTracks(Collections.singletonList(localAudioTrack));
+            connectOptionsBuilder.audioTracks(Collections.singletonList(localAudioTrack));
         }
 
         /*
@@ -597,17 +611,8 @@ public class VideoActivity extends AppCompatActivity {
         connectDialog.show();
     }
 
-    /*
-     * Called when remote participant joins the room
-     */
-    @SuppressLint("SetTextI18n")
-    private void addRemoteParticipant(RemoteParticipant remoteParticipant) {
-        //add if only is lecturer
-        String str = remoteParticipant.getIdentity();
-        if (!str.split("~")[2].equals("200")) {
-            Tools.showToast(VideoActivity.this, "No lecturer present !");
-            return;
-        }
+    //special add video clips
+    void addVideoNow(RemoteParticipant remoteParticipant, boolean islect) {
         /*
          * This app only displays video for one additional participant per Room
          */
@@ -631,7 +636,7 @@ public class VideoActivity extends AppCompatActivity {
              * Only render video tracks that are subscribed to
              */
             if (remoteVideoTrackPublication.isTrackSubscribed()) {
-                addRemoteParticipantVideo(remoteVideoTrackPublication.getRemoteVideoTrack());
+                addRemoteParticipantVideo(Objects.requireNonNull(remoteVideoTrackPublication.getRemoteVideoTrack()));
             }
         }
 
@@ -639,6 +644,51 @@ public class VideoActivity extends AppCompatActivity {
          * Start listening for participant events
          */
         remoteParticipant.setListener(remoteParticipantListener());
+    }
+
+    //load adapters
+    void prepareLiveVideo() {
+        bdx.liveVideoRecy.setAdapter(new ListLive(modelLiveVideos, new ListLive.onTouchLive() {
+            @Override
+            public void itemPressed(ModelLiveVideo liveVideo, ModelLiveVideo mv, int pos) {
+                //on participant clicked
+                Toast.makeText(ctx, "This is " + mv.getParticipants().getIdentity().split("~")[0], Toast.LENGTH_LONG).show();
+            }
+        }, new ListLive.destroyChild() {
+            @Override
+            public void itemDest(int pos, String name) {
+                Toast.makeText(ctx, name.split("~")[0] + " has left the class", Toast.LENGTH_LONG).show();
+                modelLiveVideos.remove(pos);
+                Objects.requireNonNull(bdx.liveVideoRecy.getAdapter()).notifyDataSetChanged();
+            }
+        }));
+    }
+
+    private void runLayoutAnimation(final RecyclerView recyclerView) {
+        final Context context = recyclerView.getContext();
+        final LayoutAnimationController controller = AnimationUtils.loadLayoutAnimation(context, R.anim.cardview_lay_anim);
+        recyclerView.setLayoutAnimation(controller);
+        recyclerView.getAdapter().notifyDataSetChanged();
+        recyclerView.scheduleLayoutAnimation();
+    }
+
+    /*
+     * Called when remote participant joins the room
+     */
+    @SuppressLint("SetTextI18n")
+    private void addRemoteParticipant(RemoteParticipant remoteParticipant) {
+        //add if only is lecturer
+        String str = remoteParticipant.getIdentity();
+        if (getIntent().getBooleanExtra("islect", false)) {
+            //show student names
+            Tools.showToast(VideoActivity.this, "Lecturer Mode !");
+        } else {
+            if (!str.split("\\|")[0].split("~")[2].contains("200")) {
+                Tools.showToast(VideoActivity.this, remoteParticipant.getIdentity().split("~")[0] + " has joined the class");
+            } else {
+                addVideoNow(remoteParticipant, true);
+            }
+        }
     }
 
     /*
@@ -669,7 +719,6 @@ public class VideoActivity extends AppCompatActivity {
         if (!remoteParticipant.getIdentity().equals(remoteParticipantIdentity)) {
             return;
         }
-
         /*
          * Remove remote participant renderer
          */
@@ -711,6 +760,8 @@ public class VideoActivity extends AppCompatActivity {
     int min = 0;
     int sec = 0;
     Timer _t, timer;
+    //list lives
+    private List<ModelLiveVideo> modelLiveVideos = new ArrayList<>();
 
     @SuppressLint("SetTextI18n")
     private Room.Listener roomListener() {
@@ -749,12 +800,26 @@ public class VideoActivity extends AppCompatActivity {
                     }
                 }, 1000, 1000);
                 //timer
-                for (RemoteParticipant remoteParticipant : room.getRemoteParticipants()) {
-                    addRemoteParticipant(remoteParticipant);
-                    break;
+                if (getIntent().getBooleanExtra("islect", false)) {
+                    for (RemoteParticipant rp : room.getRemoteParticipants()) {
+                        ModelLiveVideo mv = new ModelLiveVideo();
+                        mv.setParticipants(rp);
+                        mv.setRoom(room);
+                        mv.setVid(rp.getSid());
+                        //add to array
+                        modelLiveVideos.add(mv);
+                    }
+                    //notify all
+                    prepareLiveVideo();
+                } else {
+                    for (RemoteParticipant remoteParticipant : room.getRemoteParticipants()) {
+                        addRemoteParticipant(remoteParticipant);
+                        //break;
+                    }
                 }
                 if (!getIntent().getBooleanExtra("islect", false)) {
                     localAudioTrack.enable(false);
+                    muteActionFab.setImageDrawable(ContextCompat.getDrawable(VideoActivity.this, R.drawable.ic_mic_off_black_24dp));
                 }
             }
 
@@ -795,6 +860,17 @@ public class VideoActivity extends AppCompatActivity {
             @Override
             public void onParticipantConnected(Room room, RemoteParticipant remoteParticipant) {
                 addRemoteParticipant(remoteParticipant);
+                //add to lectures list
+                if (getIntent().getBooleanExtra("islect", false)) {
+                    ModelLiveVideo mv = new ModelLiveVideo();
+                    mv.setParticipants(remoteParticipant);
+                    mv.setRoom(room);
+                    mv.setVid(remoteParticipant.getSid());
+                    //add to array
+                    modelLiveVideos.add(mv);
+                    //notify all
+                    runLayoutAnimation(bdx.liveVideoRecy);
+                }
             }
 
             @Override
@@ -1120,6 +1196,16 @@ public class VideoActivity extends AppCompatActivity {
         };
     }
 
+    //just muting control
+    void muteControl() {
+        if (localAudioTrack != null) {
+            boolean enable = !localAudioTrack.isEnabled();
+            localAudioTrack.enable(enable);
+            int icon = enable ? R.drawable.ic_mic_white_24dp : R.drawable.ic_mic_off_black_24dp;
+            muteActionFab.setImageDrawable(ContextCompat.getDrawable(VideoActivity.this, icon));
+        }
+    }
+
     private View.OnClickListener muteClickListener() {
         return v -> {
             /*
@@ -1127,14 +1213,7 @@ public class VideoActivity extends AppCompatActivity {
              * signaled to other Participants in the same Room. When an audio track is
              * disabled, the audio is muted.
              */
-            if (localAudioTrack != null) {
-                boolean enable = !localAudioTrack.isEnabled();
-                localAudioTrack.enable(enable);
-                int icon = enable ?
-                        R.drawable.ic_mic_white_24dp : R.drawable.ic_mic_off_black_24dp;
-                muteActionFab.setImageDrawable(ContextCompat.getDrawable(
-                        VideoActivity.this, icon));
-            }
+            muteControl();
         };
     }
 

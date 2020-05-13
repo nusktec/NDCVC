@@ -45,6 +45,19 @@
             </LinearLayout>
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/markAtt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:layout_toStartOf="@id/golive"
+                app:backgroundTint="#fff"
+                android:tint="@color/colorAccent"
+                android:src="@drawable/icons8_checkmark"
+                app:fabSize="mini" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/golive"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -54,7 +67,7 @@
                 android:layout_margin="10dp"
                 android:src="@drawable/ic_videocam_white_24dp"
                 app:backgroundTint="@color/colorPrimaryDark"
-                app:fabSize="mini" />
+                app:fabSize="normal" />
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 </layout>

@@ -9,4 +9,5 @@ public interface Urls {
     String URL_ADM_DATA = URL_BASE + "/attendance-get-permit-all";
     String URL_ADM_CLASS_STATUS = URL_BASE + "/class-status";
     String URL_STD_CLASS_GET = URL_BASE + "/class-get-all";
+    String URL_STD_MRK = URL_BASE + "/attendance-add";
 }

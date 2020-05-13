@@ -114,7 +114,7 @@ public class MainActivityLect extends AppCompatActivity {
 
     //load main data
     void loader() throws JSONException {
-        class_name = uname + "~" + uid + "~" + "200|CLASS-" + permit;
+        class_name = (uname + "~" + uid + "~" + "200\\|CLASS-" + permit).toString();
         AndroidNetworking.post(Urls.URL_ADM_DATA)
                 .addHeaders("rdx-locker", Urls.BASE_TOKEN)
                 .setTag(this)

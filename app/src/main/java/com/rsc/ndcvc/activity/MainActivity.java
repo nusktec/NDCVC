@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
             Objects.requireNonNull(getSupportActionBar()).setSubtitle("Student: " + userObj.getString("ucountry"));
             uid = userObj.getString("uid");
             uname = userObj.getString("uname");
-            class_name = uname + "~" + uid + "~" + "100|CLASS-" + "XXXXXXXXXX";
+            class_name = uname + "~" + uid + "~" + "100\\|CLASS-" + "XXXXXXXXXX";
             checkPolicies();
         }
     }
@@ -117,6 +117,13 @@ public class MainActivity extends AppCompatActivity {
         pd.setTitle("Please wait");
         pd.setMessage(msg);
         pd.setCancelable(false);
+        pd.setButton("Logout", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                logout();
+                finish();
+            }
+        });
         pd.show();
     }
 
@@ -159,23 +166,62 @@ public class MainActivity extends AppCompatActivity {
     void main() {
         if (modelListClasses.size() < 1) {
             bdx.classInfo.setVisibility(View.VISIBLE);
-            return;
-        }
-        bdx.classInfo.setVisibility(View.GONE);
-        //list to output
-        AdpClass aClass = new AdpClass(modelListClasses, new AdpClass.onClassClick() {
-            @Override
-            public void goLive(ModelListClass md) {
-                //click to open class
-                if (md.getUlive().equals("0")) {
-                    Tools.showToast(ctx, "No Lecturer present !");
-                    return;
+        } else {
+            bdx.classInfo.setVisibility(View.GONE);
+            //list to output
+            AdpClass aClass = new AdpClass(modelListClasses, new AdpClass.onClassClick() {
+                @Override
+                public void goLive(ModelListClass md) {
+                    //click to open class
+                    if (md.getUlive().equals("0")) {
+                        Tools.showToast(ctx, "No Lecturer present !");
+                        return;
+                    }
+                    //start main activity
+                    startClass("CLASS-" + md.getCpermit());
                 }
-                //start main activity
-                startClass("CLASS-" + md.getCpermit());
-            }
-        });
-        bdx.ryc.setAdapter(aClass);
+
+                @Override
+                public void goMark(ModelListClass md) {
+                    //mark class
+                    markAttendance(md.getCpermit(), md.getUid());
+                }
+
+            });
+            bdx.ryc.setAdapter(aClass);
+        }
+        pd.hide();
+    }
+
+    void markAttendance(String permit, String uid) {
+        showProgress("Marking attendance...");
+        AndroidNetworking.post(Urls.URL_STD_MRK)
+                .addHeaders("rdx-locker", Urls.BASE_TOKEN)
+                .setTag(this)
+                .addBodyParameter("auid", uid)
+                .addBodyParameter("apermit", permit)
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        pd.hide();
+                        if (response != null) {
+                            try {
+                                Tools.showToast(ctx, response.getString("msg"));
+                                pd.hide();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    @Override
+                    public void onError(ANError anError) {
+                        pd.setMessage("Server busy. code 100");
+                        Tools.showToast(ctx, "Please try mark attendance again");
+                        pd.hide();
+                    }
+                });
     }
 
     @Override

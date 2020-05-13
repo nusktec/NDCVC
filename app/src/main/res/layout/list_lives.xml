@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <com.google.android.material.card.MaterialCardView
+        app:cardBackgroundColor="#000"
+        android:id="@+id/cover"
+        android:layout_width="80dp"
+        android:layout_height="100dp"
+        android:layout_marginBottom="10dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        app:cardCornerRadius="2dp"
+        app:cardElevation="0dp"
+        app:cardUseCompatPadding="true"
+        app:contentPadding="1dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#000"
+            tools:ignore="UselessLeaf">
+
+            <!--Video Views-->
+            <com.twilio.video.VideoView
+                android:id="@+id/lvideo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:tviMirror="true"
+                app:tviOverlaySurface="true"
+                app:tviScaleType="balanced" />
+
+            <!--Participant Name-->
+            <TextView
+                android:id="@+id/txtName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:background="#37000000"
+                android:ellipsize="end"
+                android:padding="5dp"
+                android:shadowColor="#000"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="1"
+                android:text="Paticipant Name"
+                android:textAlignment="center"
+                android:textColor="#fff"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</layout>

@@ -44,6 +44,12 @@ public class AdpClass extends RecyclerView.Adapter<AdpClass.VH> {
                 onClassClick.goLive(classes.get(position));
             }
         });
+        holder.bdx.markAtt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClassClick.goMark(classes.get(position));
+            }
+        });
         //dump data
         ModelListClass md = classes.get(position);
         holder.bdx.clsAlias.setText(md.getCalias());
@@ -52,7 +58,7 @@ public class AdpClass extends RecyclerView.Adapter<AdpClass.VH> {
     }
 
 
-    public static class VH extends RecyclerView.ViewHolder {
+    static class VH extends RecyclerView.ViewHolder {
         private ListClassesBinding bdx;
 
         VH(ListClassesBinding ls) {
@@ -64,5 +70,8 @@ public class AdpClass extends RecyclerView.Adapter<AdpClass.VH> {
     //onclick lister
     public interface onClassClick {
         void goLive(ModelListClass md);
+
+        void goMark(ModelListClass md);
     }
+
 }
