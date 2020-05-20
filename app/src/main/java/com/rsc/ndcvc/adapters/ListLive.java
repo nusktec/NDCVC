@@ -1,5 +1,6 @@
 package com.rsc.ndcvc.adapters;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,7 @@ public class ListLive extends RecyclerView.Adapter<ListLive.VH> {
     private List<ModelLiveVideo> videoLists;
     private onTouchLive onTouchLive;
     private destroyChild dest;
+    private ListLivesBinding pbinding;
 
     //open constructor
     public ListLive(List<ModelLiveVideo> modelLiveVideos, onTouchLive onPress, destroyChild dest) {
@@ -43,12 +45,6 @@ public class ListLive extends RecyclerView.Adapter<ListLive.VH> {
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         listLivesBindingView = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), R.layout.list_lives, parent, false);
-        listLivesBindingView.cover.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
         return new VH(listLivesBindingView);
     }
 
@@ -57,6 +53,13 @@ public class ListLive extends RecyclerView.Adapter<ListLive.VH> {
         //initializing
         counter = position;
         ModelLiveVideo video = videoLists.get(position);
+        holder.binding.cover.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onTouchLive.itemPressed(video, position);
+            }
+        });
+        this.pbinding = holder.binding;
         video.getParticipants().setListener(plistener());
     }
 
@@ -78,7 +81,7 @@ public class ListLive extends RecyclerView.Adapter<ListLive.VH> {
 
     //interface for onclick
     public interface onTouchLive {
-        void itemPressed(ModelLiveVideo liveVideo, ModelLiveVideo mlv, int pos);
+        void itemPressed(ModelLiveVideo liveVideo, int pos);
     }
 
     public interface destroyChild {
@@ -133,7 +136,11 @@ public class ListLive extends RecyclerView.Adapter<ListLive.VH> {
 
             @Override
             public void onVideoTrackSubscriptionFailed(@NonNull RemoteParticipant remoteParticipant, @NonNull RemoteVideoTrackPublication remoteVideoTrackPublication, @NonNull TwilioException twilioException) {
-                dest.itemDest(counter, remoteParticipant.getIdentity());
+                try {
+                    dest.itemDest(counter, remoteParticipant.getIdentity());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
 
             @Override
@@ -172,12 +179,14 @@ public class ListLive extends RecyclerView.Adapter<ListLive.VH> {
 
             @Override
             public void onAudioTrackEnabled(@NonNull RemoteParticipant remoteParticipant, @NonNull RemoteAudioTrackPublication remoteAudioTrackPublication) {
-
+                pbinding.micLive.setVisibility(View.VISIBLE);
+                pbinding.cover.setCardBackgroundColor(Color.RED);
             }
 
             @Override
             public void onAudioTrackDisabled(@NonNull RemoteParticipant remoteParticipant, @NonNull RemoteAudioTrackPublication remoteAudioTrackPublication) {
-
+                pbinding.micLive.setVisibility(View.GONE);
+                pbinding.cover.setCardBackgroundColor(Color.BLACK);
             }
 
             @Override

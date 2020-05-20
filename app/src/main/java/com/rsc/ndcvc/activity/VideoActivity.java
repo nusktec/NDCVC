@@ -38,11 +38,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.koushikdutta.ion.Ion;
 import com.rsc.ndcvc.R;
 import com.rsc.ndcvc.adapters.ListLive;
 import com.rsc.ndcvc.databinding.ActivityVideoBinding;
 import com.rsc.ndcvc.dialog.Dialog;
+import com.rsc.ndcvc.models.MCmds;
+import com.rsc.ndcvc.models.MMsg;
 import com.rsc.ndcvc.models.ModelLiveVideo;
 import com.rsc.ndcvc.util.BuildConfig;
 import com.rsc.ndcvc.util.CameraCapturerCompat;
@@ -79,6 +86,7 @@ import com.twilio.video.Vp8Codec;
 import com.twilio.video.Vp9Codec;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -166,13 +174,16 @@ public class VideoActivity extends AppCompatActivity {
     private boolean isSpeakerPhoneEnabled = true;
     private boolean enableAutomaticSubscription;
     private Context ctx;
+    FirebaseDatabase firebaseDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.bdx = DataBindingUtil.setContentView(this, R.layout.activity_video);
         this.ctx = this;
-
+        //initialize firebase
+        this.firebaseDatabase = FirebaseDatabase.getInstance();
+        fireBaseReact();
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
@@ -660,13 +671,70 @@ public class VideoActivity extends AppCompatActivity {
         remoteParticipant.setListener(remoteParticipantListener());
     }
 
+    //toggle audio manager
+    void toggleAudio() {
+        muteControl();
+    }
+
+    //firebase react
+    void fireBaseReact() {
+        DatabaseReference dbRef = firebaseDatabase.getReference("cmds");
+        dbRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                try {
+                    MCmds cmds = dataSnapshot.getValue(MCmds.class);
+                    //check if command is your
+                    if ((cmds != null && cmds.getUser().split("-")[0].equals(localParticipant.getSid())) && cmds.getAction().equals("audio")) {
+                        //toggle audio
+                        if (!getIntent().getBooleanExtra("islect", false)) {
+                            toggleAudio();
+                            Tools.showToast(ctx, "The lecturer has just toggled you audio !");
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("Error: ", databaseError.getMessage());
+            }
+        });
+        //make class child
+        firebaseDatabase.getReference("messages").child(room.getName()).child("name").setValue(getIntent().getStringExtra("uname"));
+        firebaseDatabase.getReference("messages").child(room.getName()).child("body").setValue("Has joined the class at " + Calendar.getInstance().getTime());
+        //listen to class
+        firebaseDatabase.getReference("messages").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                try {
+                    MMsg msg = dataSnapshot.getValue(MMsg.class);
+                    //add to recycler view
+                    
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                //keep it to ur self
+            }
+        });
+    }
+
     //load adapters
     void prepareLiveVideo() {
         bdx.liveVideoRecy.setAdapter(new ListLive(modelLiveVideos, new ListLive.onTouchLive() {
             @Override
-            public void itemPressed(ModelLiveVideo liveVideo, ModelLiveVideo mv, int pos) {
+            public void itemPressed(ModelLiveVideo liveVideo, int pos) {
                 //on participant clicked
-                Toast.makeText(ctx, "This is " + mv.getParticipants().getIdentity().split("~")[0], Toast.LENGTH_LONG).show();
+                Toast.makeText(ctx, liveVideo.getParticipants().getIdentity().split("~")[0] + " audio's has been toggled !", Toast.LENGTH_LONG).show();
+                //sent to mute participant
+                firebaseDatabase.getReference("cmds").child("user").setValue(liveVideo.getParticipants().getSid() + "-" + Tools.getRandomInt());
+                firebaseDatabase.getReference("cmds").child("action").setValue("audio");
             }
         }, new ListLive.destroyChild() {
             @Override
@@ -930,134 +998,66 @@ public class VideoActivity extends AppCompatActivity {
             @Override
             public void onAudioTrackPublished(RemoteParticipant remoteParticipant,
                                               RemoteAudioTrackPublication remoteAudioTrackPublication) {
-                Log.i(TAG, String.format("onAudioTrackPublished: " +
-                        "[RemoteParticipant: identity=%s], " +
-                        "[RemoteAudioTrackPublication: sid=%s, enabled=%b, " +
-                        "subscribed=%b, name=%s]", remoteParticipant.getIdentity(), remoteAudioTrackPublication.getTrackSid(), remoteAudioTrackPublication.isTrackEnabled(), remoteAudioTrackPublication.isTrackSubscribed(), remoteAudioTrackPublication.getTrackName()));
+
             }
 
             @Override
             public void onAudioTrackUnpublished(RemoteParticipant remoteParticipant,
                                                 RemoteAudioTrackPublication remoteAudioTrackPublication) {
-                Log.i(TAG, String.format("onAudioTrackUnpublished: " +
-                                "[RemoteParticipant: identity=%s], " +
-                                "[RemoteAudioTrackPublication: sid=%s, enabled=%b, " +
-                                "subscribed=%b, name=%s]",
-                        remoteParticipant.getIdentity(),
-                        remoteAudioTrackPublication.getTrackSid(),
-                        remoteAudioTrackPublication.isTrackEnabled(),
-                        remoteAudioTrackPublication.isTrackSubscribed(),
-                        remoteAudioTrackPublication.getTrackName()));
+
             }
 
             @Override
             public void onDataTrackPublished(RemoteParticipant remoteParticipant,
                                              RemoteDataTrackPublication remoteDataTrackPublication) {
-                Log.i(TAG, String.format("onDataTrackPublished: " +
-                                "[RemoteParticipant: identity=%s], " +
-                                "[RemoteDataTrackPublication: sid=%s, enabled=%b, " +
-                                "subscribed=%b, name=%s]",
-                        remoteParticipant.getIdentity(),
-                        remoteDataTrackPublication.getTrackSid(),
-                        remoteDataTrackPublication.isTrackEnabled(),
-                        remoteDataTrackPublication.isTrackSubscribed(),
-                        remoteDataTrackPublication.getTrackName()));
+
             }
 
             @Override
             public void onDataTrackUnpublished(RemoteParticipant remoteParticipant,
                                                RemoteDataTrackPublication remoteDataTrackPublication) {
-                Log.i(TAG, String.format("onDataTrackUnpublished: " +
-                                "[RemoteParticipant: identity=%s], " +
-                                "[RemoteDataTrackPublication: sid=%s, enabled=%b, " +
-                                "subscribed=%b, name=%s]",
-                        remoteParticipant.getIdentity(),
-                        remoteDataTrackPublication.getTrackSid(),
-                        remoteDataTrackPublication.isTrackEnabled(),
-                        remoteDataTrackPublication.isTrackSubscribed(),
-                        remoteDataTrackPublication.getTrackName()));
+
             }
 
             @Override
             public void onVideoTrackPublished(RemoteParticipant remoteParticipant,
                                               RemoteVideoTrackPublication remoteVideoTrackPublication) {
-                Log.i(TAG, String.format("onVideoTrackPublished: " +
-                                "[RemoteParticipant: identity=%s], " +
-                                "[RemoteVideoTrackPublication: sid=%s, enabled=%b, " +
-                                "subscribed=%b, name=%s]",
-                        remoteParticipant.getIdentity(),
-                        remoteVideoTrackPublication.getTrackSid(),
-                        remoteVideoTrackPublication.isTrackEnabled(),
-                        remoteVideoTrackPublication.isTrackSubscribed(),
-                        remoteVideoTrackPublication.getTrackName()));
+
 
             }
 
             @Override
             public void onVideoTrackUnpublished(RemoteParticipant remoteParticipant,
                                                 RemoteVideoTrackPublication remoteVideoTrackPublication) {
-                Log.i(TAG, String.format("onVideoTrackUnpublished: " +
-                                "[RemoteParticipant: identity=%s], " +
-                                "[RemoteVideoTrackPublication: sid=%s, enabled=%b, " +
-                                "subscribed=%b, name=%s]",
-                        remoteParticipant.getIdentity(),
-                        remoteVideoTrackPublication.getTrackSid(),
-                        remoteVideoTrackPublication.isTrackEnabled(),
-                        remoteVideoTrackPublication.isTrackSubscribed(),
-                        remoteVideoTrackPublication.getTrackName()));
+
             }
 
             @Override
             public void onAudioTrackSubscribed(RemoteParticipant remoteParticipant,
                                                RemoteAudioTrackPublication remoteAudioTrackPublication,
                                                RemoteAudioTrack remoteAudioTrack) {
-                Log.i(TAG, String.format("onAudioTrackSubscribed: " +
-                                "[RemoteParticipant: identity=%s], " +
-                                "[RemoteAudioTrack: enabled=%b, playbackEnabled=%b, name=%s]",
-                        remoteParticipant.getIdentity(),
-                        remoteAudioTrack.isEnabled(),
-                        remoteAudioTrack.isPlaybackEnabled(),
-                        remoteAudioTrack.getName()));
+
             }
 
             @Override
             public void onAudioTrackUnsubscribed(RemoteParticipant remoteParticipant,
                                                  RemoteAudioTrackPublication remoteAudioTrackPublication,
                                                  RemoteAudioTrack remoteAudioTrack) {
-                Log.i(TAG, String.format("onAudioTrackUnsubscribed: " +
-                                "[RemoteParticipant: identity=%s], " +
-                                "[RemoteAudioTrack: enabled=%b, playbackEnabled=%b, name=%s]",
-                        remoteParticipant.getIdentity(),
-                        remoteAudioTrack.isEnabled(),
-                        remoteAudioTrack.isPlaybackEnabled(),
-                        remoteAudioTrack.getName()));
+
             }
 
             @Override
             public void onAudioTrackSubscriptionFailed(RemoteParticipant remoteParticipant,
                                                        RemoteAudioTrackPublication remoteAudioTrackPublication,
                                                        TwilioException twilioException) {
-                Log.i(TAG, String.format("onAudioTrackSubscriptionFailed: " +
-                                "[RemoteParticipant: identity=%s], " +
-                                "[RemoteAudioTrackPublication: sid=%b, name=%s]" +
-                                "[TwilioException: code=%d, message=%s]",
-                        remoteParticipant.getIdentity(),
-                        remoteAudioTrackPublication.getTrackSid(),
-                        remoteAudioTrackPublication.getTrackName(),
-                        twilioException.getCode(),
-                        twilioException.getMessage()));
+
             }
 
             @Override
             public void onDataTrackSubscribed(RemoteParticipant remoteParticipant,
                                               RemoteDataTrackPublication remoteDataTrackPublication,
                                               RemoteDataTrack remoteDataTrack) {
-                Log.i(TAG, String.format("onDataTrackSubscribed: " +
-                                "[RemoteParticipant: identity=%s], " +
-                                "[RemoteDataTrack: enabled=%b, name=%s]",
-                        remoteParticipant.getIdentity(),
-                        remoteDataTrack.isEnabled(),
-                        remoteDataTrack.getName()));
+
             }
 
             @Override

@@ -39,9 +39,19 @@
             android:layout_gravity="center"
             android:indeterminate="true"
             android:visibility="gone" />
+        
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chat_box"
+            android:layout_width="300dp"
+            android:layout_height="match_parent"
+            android:layout_above="@id/left_components"
+            android:layout_below="@id/toolbar"
+            android:layout_alignParentEnd="true" />
 
 
         <LinearLayout
+            android:id="@+id/left_components"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
@@ -58,6 +68,17 @@
                 android:layout_gravity="center"
                 android:layout_marginBottom="@dimen/fab_margin"
                 android:src="@drawable/ic_switch_camera_white_24dp"
+                app:backgroundTint="@color/colorPrimaryDark"
+                app:fabSize="mini" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/chat_action_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="@dimen/fab_margin"
+                android:src="@drawable/icons8_chat_room"
+                android:tint="#fff"
                 app:backgroundTint="@color/colorPrimaryDark"
                 app:fabSize="mini" />
 
@@ -130,7 +151,6 @@
             android:textStyle="bold" />
 
         <TextView
-            android:visibility="gone"
             android:id="@+id/lect_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -139,7 +159,8 @@
             android:text="Awaiting Lecturer"
             android:textAlignment="center"
             android:textColor="#fff"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:visibility="gone" />
 
     </RelativeLayout>
 </layout>

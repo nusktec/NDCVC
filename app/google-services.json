@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "497789480050",
+    "firebase_url": "https://ndcvc-app.firebaseio.com",
+    "project_id": "ndcvc-app",
+    "storage_bucket": "ndcvc-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:497789480050:android:62636fd4f7984803dbe6eb",
+        "android_client_info": {
+          "package_name": "com.rsc.ndcvc"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "497789480050-nqst1dlbnfjsrduuap1tb2r538v5pe36.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxDF41CeVWGSmD6tfof8Fmz58DFZ0RY6c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "497789480050-nqst1dlbnfjsrduuap1tb2r538v5pe36.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

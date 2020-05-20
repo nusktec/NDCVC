@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.widget.Toast;
 
+import java.util.Random;
+
 public class Tools {
     private static String STORE_LOGIN_ID = "acc_id_001";
     private static String STORE_LOGIN_ID2 = "acc_id_002";
@@ -43,4 +45,7 @@ public class Tools {
         Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
     }
 
+    public static int getRandomInt() {
+        return new Random().nextInt(100) + 50;
+    }
 }
