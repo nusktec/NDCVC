@@ -10,7 +10,7 @@
         android:fitsSystemWindows="true"
         tools:context="com.rsc.ndcvc.activity.VideoActivity">
 
-        <!--        <include layout="@layout/content_video" android:layout_centerInParent="true" android:layout_width="match_parent" android:layout_height="match_parent" />-->
+        <!--<include layout="@layout/content_video" android:layout_centerInParent="true" android:layout_width="match_parent" android:layout_height="match_parent" />-->
 
         <com.twilio.video.VideoView
             android:id="@+id/primary_video_view"
@@ -25,7 +25,7 @@
             android:layout_height="150dp"
             android:layout_alignParentBottom="true"
             android:layout_gravity="bottom|start"
-            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
             android:layout_marginBottom="?attr/actionBarSize"
             app:tviMirror="true"
             app:tviOverlaySurface="true" />
@@ -48,7 +48,8 @@
             android:layout_alignParentBottom="true"
             android:layout_gravity="bottom|end"
             android:layout_marginBottom="?attr/actionBarSize"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            tools:ignore="RelativeOverlap">
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/switch_camera_action_fab"
@@ -127,6 +128,18 @@
             android:textColor="#fff"
             android:textSize="20sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/lect_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:padding="10dp"
+            android:text="Awaiting Lecturer"
+            android:textAlignment="center"
+            android:textColor="#fff"
+            android:textSize="20sp" />
 
     </RelativeLayout>
 </layout>

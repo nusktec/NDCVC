@@ -309,7 +309,12 @@ public class VideoActivity extends AppCompatActivity {
                     true,
                     cameraCapturerCompat.getVideoCapturer(),
                     LOCAL_VIDEO_TRACK_NAME);
-            localVideoTrack.addRenderer(localVideoView);
+            //switch account
+            if (getIntent().getBooleanExtra("islect", false)) {
+                localVideoTrack.addRenderer(bdx.primaryVideoView);
+            } else {
+                localVideoTrack.addRenderer(bdx.thumbnailVideoView);
+            }
 
             /*
              * If connected to a Room then share the local video track.
@@ -428,7 +433,12 @@ public class VideoActivity extends AppCompatActivity {
                 cameraCapturerCompat.getVideoCapturer(),
                 LOCAL_VIDEO_TRACK_NAME);
         primaryVideoView.setMirror(true);
-        localVideoTrack.addRenderer(primaryVideoView);
+        //switch account
+        if (getIntent().getBooleanExtra("islect", false)) {
+            localVideoTrack.addRenderer(bdx.primaryVideoView);
+        } else {
+            localVideoTrack.addRenderer(bdx.thumbnailVideoView);
+        }
         localVideoView = primaryVideoView;
     }
 
@@ -499,6 +509,10 @@ public class VideoActivity extends AppCompatActivity {
         setDisconnectAction();
         //show dialog
         showProgress("Establishing video class");
+        //Show chai!
+        if (!getIntent().getBooleanExtra("islect", false)) {
+            bdx.thumbnailVideoView.setVisibility(View.VISIBLE);
+        }
     }
 
     /*
@@ -620,8 +634,8 @@ public class VideoActivity extends AppCompatActivity {
             Snackbar.make(connectActionFab,
                     remoteParticipant.getIdentity().split("~")[0] + " has joined the class",
                     Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-            return;
+                    .setAction("Action", null);
+            //return;
         }
         remoteParticipantIdentity = remoteParticipant.getIdentity();
 
@@ -636,7 +650,7 @@ public class VideoActivity extends AppCompatActivity {
              * Only render video tracks that are subscribed to
              */
             if (remoteVideoTrackPublication.isTrackSubscribed()) {
-                addRemoteParticipantVideo(Objects.requireNonNull(remoteVideoTrackPublication.getRemoteVideoTrack()));
+                addRemoteParticipantVideo(remoteVideoTrackPublication.getRemoteVideoTrack());
             }
         }
 
@@ -679,14 +693,13 @@ public class VideoActivity extends AppCompatActivity {
     private void addRemoteParticipant(RemoteParticipant remoteParticipant) {
         //add if only is lecturer
         String str = remoteParticipant.getIdentity();
-        if (getIntent().getBooleanExtra("islect", false)) {
-            //show student names
-            Tools.showToast(VideoActivity.this, "Lecturer Mode !");
-        } else {
-            if (!str.split("\\|")[0].split("~")[2].contains("200")) {
-                Tools.showToast(VideoActivity.this, remoteParticipant.getIdentity().split("~")[0] + " has joined the class");
-            } else {
+        if (!getIntent().getBooleanExtra("islect", false)) {
+            if (str.split("\\|")[0].split("~")[2].contains("200")) {
+                bdx.lectInfo.setVisibility(View.GONE);
+                Tools.showToast(VideoActivity.this, remoteParticipant.getIdentity().split("~")[0] + " (Lecturer) has joined the class");
                 addVideoNow(remoteParticipant, true);
+            } else {
+                Tools.showToast(VideoActivity.this, remoteParticipant.getIdentity().split("~")[0] + " has joined the class");
             }
         }
     }
@@ -695,20 +708,22 @@ public class VideoActivity extends AppCompatActivity {
      * Set primary view as renderer for participant video track
      */
     private void addRemoteParticipantVideo(VideoTrack videoTrack) {
+        //remove waiting for lecturer
         moveLocalVideoToThumbnailView();
         primaryVideoView.setMirror(false);
-        videoTrack.addRenderer(primaryVideoView);
+        videoTrack.addRenderer(bdx.primaryVideoView);
+        bdx.lectInfo.setVisibility(View.GONE);
     }
 
     private void moveLocalVideoToThumbnailView() {
-        if (thumbnailVideoView.getVisibility() == View.GONE) {
-            thumbnailVideoView.setVisibility(View.VISIBLE);
-            localVideoTrack.removeRenderer(primaryVideoView);
-            localVideoTrack.addRenderer(thumbnailVideoView);
-            localVideoView = thumbnailVideoView;
-            thumbnailVideoView.setMirror(cameraCapturerCompat.getCameraSource() ==
-                    CameraSource.FRONT_CAMERA);
-        }
+//        if (thumbnailVideoView.getVisibility() == View.GONE) {
+//            thumbnailVideoView.setVisibility(View.VISIBLE);
+//            localVideoTrack.removeRenderer(primaryVideoView);
+//            localVideoTrack.addRenderer(thumbnailVideoView);
+//            localVideoView = thumbnailVideoView;
+//            thumbnailVideoView.setMirror(cameraCapturerCompat.getCameraSource() ==
+//                    CameraSource.FRONT_CAMERA);
+//        }
     }
 
     /*
@@ -716,6 +731,12 @@ public class VideoActivity extends AppCompatActivity {
      */
     @SuppressLint("SetTextI18n")
     private void removeRemoteParticipant(RemoteParticipant remoteParticipant) {
+        String str = remoteParticipant.getIdentity();
+        if (!getIntent().getBooleanExtra("islect", false)) {
+            if (str.split("\\|")[0].split("~")[2].contains("200")) {
+                bdx.lectInfo.setVisibility(View.VISIBLE);
+            }
+        }
         if (!remoteParticipant.getIdentity().equals(remoteParticipantIdentity)) {
             return;
         }
@@ -725,7 +746,6 @@ public class VideoActivity extends AppCompatActivity {
         if (!remoteParticipant.getRemoteVideoTracks().isEmpty()) {
             RemoteVideoTrackPublication remoteVideoTrackPublication =
                     remoteParticipant.getRemoteVideoTracks().get(0);
-
             /*
              * Remove video only if subscribed to participant track
              */
@@ -737,20 +757,21 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     private void removeParticipantVideo(VideoTrack videoTrack) {
-        videoTrack.removeRenderer(primaryVideoView);
+        videoTrack.removeRenderer(bdx.primaryVideoView);
     }
 
     private void moveLocalVideoToPrimaryView() {
-        if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
-            thumbnailVideoView.setVisibility(View.GONE);
-            if (localVideoTrack != null) {
-                localVideoTrack.removeRenderer(thumbnailVideoView);
-                localVideoTrack.addRenderer(primaryVideoView);
-            }
-            localVideoView = primaryVideoView;
-            primaryVideoView.setMirror(cameraCapturerCompat.getCameraSource() ==
-                    CameraSource.FRONT_CAMERA);
-        }
+
+//        if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
+//            thumbnailVideoView.setVisibility(View.GONE);
+//            if (localVideoTrack != null) {
+//                localVideoTrack.removeRenderer(thumbnailVideoView);
+//                localVideoTrack.addRenderer(primaryVideoView);
+//            }
+//            localVideoView = primaryVideoView;
+//            primaryVideoView.setMirror(cameraCapturerCompat.getCameraSource() ==
+//                    CameraSource.FRONT_CAMERA);
+//        }
     }
 
     /*
@@ -817,7 +838,9 @@ public class VideoActivity extends AppCompatActivity {
                         //break;
                     }
                 }
+                //run default stuff when connect
                 if (!getIntent().getBooleanExtra("islect", false)) {
+                    bdx.lectInfo.setVisibility(View.VISIBLE);
                     localAudioTrack.enable(false);
                     muteActionFab.setImageDrawable(ContextCompat.getDrawable(VideoActivity.this, R.drawable.ic_mic_off_black_24dp));
                 }
@@ -855,11 +878,11 @@ public class VideoActivity extends AppCompatActivity {
                 Tools.showToast(VideoActivity.this, "You are now disconnected !");
                 setTitle("NDCVC Mobile");
                 _t.cancel();
+                bdx.lectInfo.setVisibility(View.GONE);
             }
 
             @Override
             public void onParticipantConnected(Room room, RemoteParticipant remoteParticipant) {
-                addRemoteParticipant(remoteParticipant);
                 //add to lectures list
                 if (getIntent().getBooleanExtra("islect", false)) {
                     ModelLiveVideo mv = new ModelLiveVideo();
@@ -870,6 +893,9 @@ public class VideoActivity extends AppCompatActivity {
                     modelLiveVideos.add(mv);
                     //notify all
                     runLayoutAnimation(bdx.liveVideoRecy);
+                    Tools.showToast(VideoActivity.this, remoteParticipant.getIdentity().split("~")[0] + " has joined the class");
+                } else {
+                    addRemoteParticipant(remoteParticipant);
                 }
             }
 
@@ -964,6 +990,7 @@ public class VideoActivity extends AppCompatActivity {
                         remoteVideoTrackPublication.isTrackEnabled(),
                         remoteVideoTrackPublication.isTrackSubscribed(),
                         remoteVideoTrackPublication.getTrackName()));
+
             }
 
             @Override
